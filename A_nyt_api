@@ -1,0 +1,66 @@
+'''
+Title: Script to store some data by month from cooking.nytimes.com using NYTimes API in json format 
+Subtitle: Step 1 out of ___
+Language: Python 3.4
+Author: Katsia M
+Date: 10/20/2015
+'''
+
+#load developers key
+kkey='key'
+
+#load necessary modules
+import requests
+import time
+import json
+import datetime
+import math
+
+#specify first day
+start = datetime.date(year = int(2014), month = int(1), day = int(1))
+#number of days
+ndays=31;
+
+startdata=[]
+#iterate through dates
+for j in list(range(ndays)):
+ start1=start + datetime.timedelta(days=j)
+ str_start=start1.strftime('%Y%m%d')
+ print(str_start)
+ 
+#make a request (TODO: make it work for requests with multiple pages)
+ r = requests.get('http://api.nytimes.com/svc/search/v2/articlesearch.json?&fq=type_of_material%3A%28%22Recipe%22%29&begin_date=' + str_start + '&end_date=' + str_start + '&fl=web_url%2C_id%2Cword_count%2Cheadline%2Cpub_date&api-key=' + kkey)
+# Open json file
+ rjson=r.json()
+ newlist=[]
+ hits=rjson['response']['meta'].get('hits') -1
+ #iterate through hits
+ for i in range(hits):
+  newdic={}
+  #store order number , title, word count, id, url, publication date
+  newdic['hit_']=str(i) + ' out of ' + str(hits)
+  newdic['name_']=rjson['response']['docs'][i]['headline'].get('name')
+  newdic['word_count_']=rjson['response']['docs'][i].get('word_count') 
+  newdic['_id_']=rjson['response']['docs'][i].get('_id') 
+  newdic['web_url_']=rjson['response']['docs'][i].get('web_url')
+  newdic['pub_date_']=rjson['response']['docs'][i].get('pub_date')
+  newlist.append(newdic)
+
+ startdata.append(newlist)
+ #time the request
+ time.sleep(15)
+else:
+ print('break')
+ #store in a json-formatted file
+ with open('out'+str(start.strftime('%Y%m%d')), "w") as outfile:
+  json.dump(startdata, outfile, indent=4)
+print('The job is done, madam') 
+
+
+
+'''
+Reading List:
+https://github.com/soodoku/python-workshop/blob/master/py_scripts/
+http://libbyh.com/2014/03/21/fetching-articles-from-the-new-york-times-api/
+http://dlab.berkeley.edu/blog/scraping-new-york-times-articles-python-tutorial
+'''

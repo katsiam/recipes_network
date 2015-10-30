@@ -1,3 +1,4 @@
+
 '''
 Title: Script to store some data by month from cooking.nytimes.com using NYTimes API in json format 
 Subtitle: Step 1 out of ___
@@ -28,32 +29,65 @@ for j in list(range(ndays)):
  str_start=start1.strftime('%Y%m%d')
  print(str_start)
  
-#make a request (TODO: make it work for requests with multiple pages)
+#make a request
+ time.sleep(15)
  r = requests.get('http://api.nytimes.com/svc/search/v2/articlesearch.json?&fq=type_of_material%3A%28%22Recipe%22%29&begin_date=' + str_start + '&end_date=' + str_start + '&fl=web_url%2C_id%2Cword_count%2Cheadline%2Cpub_date&api-key=' + kkey)
 # Open json file
  rjson=r.json()
  newlist=[]
- hits=rjson['response']['meta'].get('hits') -1
+ hits=rjson['response']['meta'].get('hits') #python number
+ print("# of hits is  "+ str(hits))
  #iterate through hits
- for i in range(hits):
-  newdic={}
-  #store order number , title, word count, id, url, publication date
-  newdic['hit_']=str(i) + ' out of ' + str(hits)
-  newdic['name_']=rjson['response']['docs'][i]['headline'].get('name')
-  newdic['word_count_']=rjson['response']['docs'][i].get('word_count') 
-  newdic['_id_']=rjson['response']['docs'][i].get('_id') 
-  newdic['web_url_']=rjson['response']['docs'][i].get('web_url')
-  newdic['pub_date_']=rjson['response']['docs'][i].get('pub_date')
-  newlist.append(newdic)
+ for i in range(min(hits,10)):
+  if 'content_kicker' in rjson['response']['docs'][i]['headline'].keys():
+   print("Kicked out Page 0 and hit # " + str(i))
+   continue
+  else: 
+   newdic={} #dic in a hit within a day
+   #store order number , title, word count, id, url, publication date
+   newdic['hit_']=str(i) + ' out of ' + str(hits-1)
+   newdic['name_']=rjson['response']['docs'][i]['headline'].get('name')
+   newdic['word_count_']=rjson['response']['docs'][i].get('word_count') 
+   newdic['_id_']=rjson['response']['docs'][i].get('_id') 
+   newdic['web_url_']=rjson['response']['docs'][i].get('web_url')
+   newdic['pub_date_']=rjson['response']['docs'][i].get('pub_date') 
+   print('Done for Page 0 and hit # ' + str(i))
+   newlist.append(newdic)
+ else:
+  pass
+ if hits > 9:
+  for page in list(range(1,math.ceil(hits/10))):
+   time.sleep(15)
+   rpage = requests.get('http://api.nytimes.com/svc/search/v2/articlesearch.json?&fq=type_of_material%3A%28%22Recipe%22%29&begin_date=' + str_start + '&end_date=' + str_start + '&fl=web_url%2C_id%2Cword_count%2Cheadline%2Cpub_date&page=' + str(page) + '&api-key=' + kkey)
+   rpagejson=rpage.json()
+   for i in range(min(hits-page*10,10)):
+    if 'content_kicker' in rpagejson['response']['docs'][i]['headline'].keys():
+     print('Kicked out Page= ' + str(page) + ' and i= ' + str(i))
+     continue
+    else: 
+     newdic['hit_']=str(i) + ' out of ' + str(hits-1)
+     newdic['name_']=rpagejson['response']['docs'][i]['headline'].get('name')
+     newdic['word_count_']=rpagejson['response']['docs'][i].get('word_count') 
+     newdic['_id_']=rpagejson['response']['docs'][i].get('_id') 
+     newdic['web_url_']=rpagejson['response']['docs'][i].get('web_url')
+     newdic['pub_date_']=rpagejson['response']['docs'][i].get('pub_date') 
+     print(' Done for Page= ' + str(page) + ' and i= ' + str(i))
+     newlist.append(newdic)
+   else:
+    pass
+  else:
+   pass
+ else:
+  pass  
 
  startdata.append(newlist)
- #time the request
- time.sleep(15)
 else:
- print('break')
- #store in a json-formatted file
- with open('out'+str(start.strftime('%Y%m%d')), "w") as outfile:
-  json.dump(startdata, outfile, indent=4)
+ print('Reached the end of the script')
+ 
+#store in a json-formatted file
+with open('out'+str(start.strftime('%Y%m%d')), "w") as outfile:
+ json.dump(startdata, outfile, indent=4)
+ 
 print('The job is done, madam') 
 
 

@@ -1,4 +1,4 @@
-<h1> Cooking NYT network analysis </h1>
+<h1> Ingredients of the recipes from Cooking.NYTimes.com network analysis </h1>
 
 <p> This project has its goals </p>
 <ol>

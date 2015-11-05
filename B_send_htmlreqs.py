@@ -1,3 +1,11 @@
+'''
+Title: Script to pull some data from HTMLs 
+Subtitle: Step 2 out of ___
+Language: Python 3.4
+Author: Katsia M
+Date: 11/10/2015
+'''
+
 import pandas as pd
 import json
 import requests
